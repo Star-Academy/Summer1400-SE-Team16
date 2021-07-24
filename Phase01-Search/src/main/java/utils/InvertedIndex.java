@@ -22,17 +22,6 @@ public class InvertedIndex {
         wordIndexes.get(word).add(document.hashCode());
     }
 
-    public void join(InvertedIndex index) {
-        documentIndexes.putAll(index.documentIndexes);
-        for (Map.Entry<String, Set<Integer>> wordIndex : index.wordIndexes.entrySet()) {
-            if (wordIndexes.containsKey(wordIndex.getKey())) {
-                wordIndexes.get(wordIndex.getKey()).addAll(wordIndex.getValue());
-            } else {
-                wordIndexes.put(wordIndex.getKey(), wordIndex.getValue());
-            }
-        }
-    }
-
     public Set<Integer> getWordIndexes(String word) {
         return wordIndexes.get(word);
     }

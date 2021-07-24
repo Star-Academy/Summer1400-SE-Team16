@@ -20,30 +20,34 @@ public class PorterStemmer {
 
     private String stemStep1a(String input) {
         if (input.endsWith("sses")) {
-            return input.substring(0, input.length() - 2);
+            return removeLastCharacters(input, 2);
         }
         if (input.endsWith("ies")) {
-            return input.substring(0, input.length() - 2);
+            return removeLastCharacters(input, 2);
         }
         if (input.endsWith("ss")) {
             return input;
         }
         if (input.endsWith("s")) {
-            return input.substring(0, input.length() - 1);
+            return removeLastCharacters(input, 1);
         }
         return input;
     }
 
+    private String removeLastCharacters(String input, int count) {
+        return input.substring(0, input.length() - count);
+    }
+
     private String stemStep1b(String input) {
         if (input.endsWith("eed")) {
-            String stem = input.substring(0, input.length() - 1);
+            String stem = removeLastCharacters(input, 1);
             String letterTypes = getLetterTypes(stem);
             int m = getM(letterTypes);
             if (m > 0) return stem;
             return input;
         }
         if (input.endsWith("ed")) {
-            String stem = input.substring(0, input.length() - 2);
+            String stem = removeLastCharacters(input, 2);
             String letterTypes = getLetterTypes(stem);
             if (letterTypes.contains("v")) {
                 return step1b2(stem);
@@ -51,7 +55,7 @@ public class PorterStemmer {
             return input;
         }
         if (input.endsWith("ing")) {
-            String stem = input.substring(0, input.length() - 3);
+            String stem = removeLastCharacters(input, 3);
             String letterTypes = getLetterTypes(stem);
             if (letterTypes.contains("v")) {
                 return step1b2(stem);
@@ -70,11 +74,8 @@ public class PorterStemmer {
             return input + "e";
         } else {
             char lastDoubleConsonant = getLastDoubleConsonant(input);
-            if (lastDoubleConsonant != 0 &&
-                    lastDoubleConsonant != 'l'
-                    && lastDoubleConsonant != 's'
-                    && lastDoubleConsonant != 'z') {
-                return input.substring(0, input.length() - 1);
+            if (lastDoubleConsonant != 0 && lastDoubleConsonant != 'l' && lastDoubleConsonant != 's' && lastDoubleConsonant != 'z') {
+                return removeLastCharacters(input, 1);
             } else {
                 String letterTypes = getLetterTypes(input);
                 int m = getM(letterTypes);
@@ -89,7 +90,7 @@ public class PorterStemmer {
 
     private String stemStep1c(String input) {
         if (input.endsWith("y")) {
-            String stem = input.substring(0, input.length() - 1);
+            String stem = removeLastCharacters(input, 1);
             String letterTypes = getLetterTypes(stem);
             if (letterTypes.contains("v")) return stem + "i";
         }
@@ -104,9 +105,13 @@ public class PorterStemmer {
                 "ate", "tion", "ence", "ance", "ize", "ble", "al", "ent", "e", "ous", "ize", "ate", "ate", "al", "ive",
                 "ful", "ous", "al", "ive", "ble", "log"
         };
+        return replaceSuffix(input, s1, s2);
+    }
+
+    private String replaceSuffix(String input, String[] s1, String[] s2) {
         for (int i = 0; i < s1.length; i++) {
             if (input.endsWith(s1[i])) {
-                String stem = input.substring(0, input.length() - s1[i].length());
+                String stem = removeLastCharacters(input, s1[i].length());
                 String letterTypes = getLetterTypes(stem);
                 int m = getM(letterTypes);
                 if (m > 0) return stem + s2[i];
@@ -117,34 +122,9 @@ public class PorterStemmer {
     }
 
     private String stemStep3(String input) {
-        String[] s1 = new String[]{
-                "icate",
-                "ative",
-                "alize",
-                "iciti",
-                "ical",
-                "ful",
-                "ness",
-        };
-        String[] s2 = new String[]{
-                "ic",
-                "",
-                "al",
-                "ic",
-                "ic",
-                "",
-                "",
-        };
-        for (int i = 0; i < s1.length; i++) {
-            if (input.endsWith(s1[i])) {
-                String stem = input.substring(0, input.length() - s1[i].length());
-                String letterTypes = getLetterTypes(stem);
-                int m = getM(letterTypes);
-                if (m > 0) return stem + s2[i];
-                return input;
-            }
-        }
-        return input;
+        String[] s1 = new String[]{"icate", "ative", "alize", "iciti", "ical", "ful", "ness"};
+        String[] s2 = new String[]{"ic", "", "al", "ic", "ic", "", ""};
+        return replaceSuffix(input, s1, s2);
 
     }
 
@@ -154,7 +134,7 @@ public class PorterStemmer {
                 "ate", "iti", "ous", "ive", "ize"};
         for (String suffix : suffixes) {
             if (input.endsWith(suffix)) {
-                String stem = input.substring(0, input.length() - suffix.length());
+                String stem = removeLastCharacters(input, suffix.length());
                 String letterTypes = getLetterTypes(stem);
                 int m = getM(letterTypes);
                 if (m > 1) {
@@ -174,7 +154,7 @@ public class PorterStemmer {
 
     private String stemStep5a(String input) {
         if (input.endsWith("e")) {
-            String stem = input.substring(0, input.length() - 1);
+            String stem = removeLastCharacters(input, 1);
             String letterTypes = getLetterTypes(stem);
             int m = getM(letterTypes);
             if (m > 1) {
@@ -191,7 +171,7 @@ public class PorterStemmer {
         String letterTypes = getLetterTypes(input);
         int m = getM(letterTypes);
         if (m > 1 && input.endsWith("ll")) {
-            return input.substring(0, input.length() - 1);
+            return removeLastCharacters(input, 1);
         }
         return input;
     }

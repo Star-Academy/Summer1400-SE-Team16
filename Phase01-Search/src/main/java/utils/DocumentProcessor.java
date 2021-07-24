@@ -5,10 +5,6 @@ public class DocumentProcessor {
     private final PorterStemmer stemmer;
     private String data;
 
-    public DocumentProcessor() {
-        stemmer = new PorterStemmer();
-    }
-
     public DocumentProcessor(String data) {
         stemmer = new PorterStemmer();
         this.data = data;

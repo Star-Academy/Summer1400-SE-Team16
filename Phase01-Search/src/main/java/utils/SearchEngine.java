@@ -1,7 +1,7 @@
 package utils;
 
 import java.nio.file.Path;
-import java.util.Arrays;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.stream.Collectors;
 
@@ -14,20 +14,43 @@ public class SearchEngine {
     }
 
     public LinkedHashSet<Path> search(String[] mustHaveWords, String[] couldHaveWords, String[] mustNotHaveWords) {
-        LinkedHashSet<Integer> mustHaveWordsSet = getWordsIndexSet(mustHaveWords);
+        LinkedHashSet<Integer> mustHaveWordsSet = getCommonWordsIndexSet(mustHaveWords);
         if (couldHaveWords.length != 0) {
-            LinkedHashSet<Integer> couldHaveWordsSet = getJointWordsIndexSet(couldHaveWords);
             if (mustHaveWords.length != 0) {
-                mustHaveWordsSet.retainAll(couldHaveWordsSet);
+                removeMustNotHaves(mustNotHaveWords, mustHaveWordsSet);
+                removeWordsWithoutOccurrences(couldHaveWords, mustHaveWordsSet);
             } else {
-                mustHaveWordsSet.addAll(couldHaveWordsSet);
+                mustHaveWordsSet = getJointWordsIndexSet(couldHaveWords);
+                removeMustNotHaves(mustNotHaveWords, mustHaveWordsSet);
             }
-        }
-        if (mustNotHaveWords.length != 0) {
-            LinkedHashSet<Integer> mustNotHaveWordsSet = getJointWordsIndexSet(mustNotHaveWords);
-            mustHaveWordsSet.removeAll(mustNotHaveWordsSet);
+        } else if (mustHaveWords.length != 0) {
+            removeMustNotHaves(mustNotHaveWords, mustHaveWordsSet);
         }
         return mustHaveWordsSet.stream().map(index::getDocumentByIndex).collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    private void removeWordsWithoutOccurrences(String[] couldHaveWords, LinkedHashSet<Integer> mustHaveWordsSet) {
+        for (Iterator<Integer> resultsIterator = mustHaveWordsSet.iterator(); resultsIterator.hasNext(); ) {
+            Integer wordIndex = resultsIterator.next();
+            boolean isFound = false;
+            for (String word : couldHaveWords) {
+                if (index.getWordIndexes(word).contains(wordIndex)) {
+                    isFound = true;
+                    break;
+                }
+            }
+            if (!isFound) {
+                resultsIterator.remove();
+            }
+        }
+    }
+
+    private void removeMustNotHaves(String[] mustNotHaveWords, LinkedHashSet<Integer> mustHaveWordsSet) {
+        if (mustNotHaveWords.length != 0) {
+            for (String word : mustNotHaveWords) {
+                mustHaveWordsSet.removeIf(wordIndex -> index.getWordIndexes(word).contains(wordIndex));
+            }
+        }
     }
 
     private LinkedHashSet<Integer> getJointWordsIndexSet(String[] resultsWords) {
@@ -39,15 +62,21 @@ public class SearchEngine {
         return jointSet;
     }
 
-    private LinkedHashSet<Integer> getWordsIndexSet(String[] resultsWords) {
-        LinkedHashSet<Integer> resultsSet = new LinkedHashSet<>();
-        for (int i = 0; i < resultsWords.length; i++) {
-            if (index.getWordIndexes(resultsWords[i]) == null) continue;
-            if (i == 0) {
-                resultsSet.addAll(index.getWordIndexes(resultsWords[i]));
-            } else {
-                resultsSet.retainAll(index.getWordIndexes(resultsWords[i]));
+    private LinkedHashSet<Integer> getCommonWordsIndexSet(String[] resultsWords) {
+        int minLen = Integer.MAX_VALUE;
+        String minWord = null;
+        for (String word : resultsWords) {
+            if (index.getWordIndexes(word) == null) return new LinkedHashSet<>();
+            if (index.getWordIndexes(word).size() < minLen) {
+                minLen = index.getWordIndexes(word).size();
+                minWord = word;
             }
+        }
+        if (minWord == null) return new LinkedHashSet<>();
+        LinkedHashSet<Integer> resultsSet = new LinkedHashSet<>(index.getWordIndexes(minWord));
+        for (String resultsWord : resultsWords) {
+            if (minWord.equals(resultsWord)) continue;
+            resultsSet.retainAll(index.getWordIndexes(resultsWord));
         }
         return resultsSet;
     }

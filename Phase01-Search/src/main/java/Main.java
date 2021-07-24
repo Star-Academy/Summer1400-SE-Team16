@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 public class Main {
 
     public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
         SearchEngine engine;
         try {
             DocumentScanner documentScanner = new DocumentScanner(Path.of("SampleEnglishData"));
@@ -19,17 +20,24 @@ public class Main {
             e.printStackTrace();
             return;
         }
-        Scanner scanner = new Scanner(System.in);
-        String input = scanner.nextLine().trim().toLowerCase().replaceAll("\\s+", " ");
+        String input = getInput(scanner);
+        LinkedHashSet<Path> results = getResults(engine, input);
+        for (Path result : results) {
+            System.out.println(result.getFileName());
+        }
+    }
+
+    private static String getInput(Scanner scanner) {
+        return scanner.nextLine().trim().toLowerCase().replaceAll("\\s+", " ");
+    }
+
+    private static LinkedHashSet<Path> getResults(SearchEngine engine, String input) {
         Set<String> couldHaveWords = new HashSet<>();
         Set<String> mustHaveWords = new HashSet<>();
         Set<String> mustNotHaveWords = new HashSet<>();
         parseInput(input, couldHaveWords, mustHaveWords, mustNotHaveWords);
-        LinkedHashSet<Path> results = engine.search(mustHaveWords.toArray(String[]::new), couldHaveWords.toArray(String[]::new),
+        return engine.search(mustHaveWords.toArray(String[]::new), couldHaveWords.toArray(String[]::new),
                 mustNotHaveWords.toArray(String[]::new));
-        for (Path result : results) {
-            System.out.println(result.getFileName());
-        }
     }
 
     private static void parseInput(String input, Set<String> couldHaveWords, Set<String> mustHaveWords, Set<String> mustNotHaveWords) {
