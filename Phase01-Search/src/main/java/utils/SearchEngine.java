@@ -1,38 +1,54 @@
 package utils;
 
-import java.util.ArrayList;
-import java.util.Scanner;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.stream.Collectors;
 
 public class SearchEngine {
-    ArrayList<String> mustHaveWords = new ArrayList<>();
-    ArrayList<String> couldHaveWords = new ArrayList<>();
-    ArrayList<String> mustNotHaveWords = new ArrayList<>();
 
-    public void run() {
-        scanWords();
+    private final InvertedIndex index;
+
+    public SearchEngine(InvertedIndex index) {
+        this.index = index;
     }
 
-    private void scanWords() {
-        Scanner scanner = new Scanner(System.in);
-        String input =  scanner.nextLine();
-        Matcher matcher = getMatcher(input, "(\\S+)(?=+)");
-        while (matcher.find()) {
-            couldHaveWords.add(matcher.group(1));
+    public LinkedHashSet<Path> search(String[] mustHaveWords, String[] couldHaveWords, String[] mustNotHaveWords) {
+        LinkedHashSet<Integer> mustHaveWordsSet = getWordsIndexSet(mustHaveWords);
+        if (couldHaveWords.length != 0) {
+            LinkedHashSet<Integer> couldHaveWordsSet = getJointWordsIndexSet(couldHaveWords);
+            if (mustHaveWords.length != 0) {
+                mustHaveWordsSet.retainAll(couldHaveWordsSet);
+            } else {
+                mustHaveWordsSet.addAll(couldHaveWordsSet);
+            }
         }
-        matcher = getMatcher(input, "(\\S+)(?=-)");
-        while (matcher.find()) {
-            mustNotHaveWords.add(matcher.group(1));
+        if (mustNotHaveWords.length != 0) {
+            LinkedHashSet<Integer> mustNotHaveWordsSet = getJointWordsIndexSet(mustNotHaveWords);
+            mustHaveWordsSet.removeAll(mustNotHaveWordsSet);
         }
-        matcher = getMatcher(input, "(\\S+)(?=^(-|+)");
-        while (matcher.find()) {
-            mustHaveWords.add(matcher.group(1));
-        }
+        return mustHaveWordsSet.stream().map(index::getDocumentByIndex).collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
-    public static Matcher getMatcher(String command, String regex) {
-        Pattern pattern = Pattern.compile(regex);
-        return pattern.matcher(command);
+    private LinkedHashSet<Integer> getJointWordsIndexSet(String[] resultsWords) {
+        LinkedHashSet<Integer> jointSet = new LinkedHashSet<>();
+        for (String word : resultsWords) {
+            if (index.getWordIndexes(word) == null) continue;
+            jointSet.addAll(index.getWordIndexes(word));
+        }
+        return jointSet;
+    }
+
+    private LinkedHashSet<Integer> getWordsIndexSet(String[] resultsWords) {
+        LinkedHashSet<Integer> resultsSet = new LinkedHashSet<>();
+        for (int i = 0; i < resultsWords.length; i++) {
+            if (index.getWordIndexes(resultsWords[i]) == null) continue;
+            if (i == 0) {
+                resultsSet.addAll(index.getWordIndexes(resultsWords[i]));
+            } else {
+                resultsSet.retainAll(index.getWordIndexes(resultsWords[i]));
+            }
+        }
+        return resultsSet;
     }
 }

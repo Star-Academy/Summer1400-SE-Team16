@@ -3,31 +3,34 @@ package utils;
 public class DocumentProcessor {
 
     private final PorterStemmer stemmer;
-    private StringBuilder data;
+    private String data;
 
     public DocumentProcessor() {
         stemmer = new PorterStemmer();
-        data = new StringBuilder();
     }
 
     public DocumentProcessor(String data) {
         stemmer = new PorterStemmer();
-        this.data = new StringBuilder(data);
+        this.data = data;
+    }
+
+    public DocumentProcessor toLowerCase() {
+        data = data.toLowerCase();
+        return this;
     }
 
     public DocumentProcessor removeSigns() {
-
-        data = new StringBuilder(data.toString().replaceAll("[.\"'!@#$%^&*()\\[\\]]+", ""));
+        data = data.replaceAll("[^a-zA-Z0-9\\s]+", "");
         return this;
     }
 
     public DocumentProcessor stem() {
-        data = new StringBuilder(stemmer.stemWord(data.toString()));
+        data = stemmer.stemWord(data);
         return this;
     }
 
     @Override
     public String toString() {
-        return data.toString();
+        return data;
     }
 }

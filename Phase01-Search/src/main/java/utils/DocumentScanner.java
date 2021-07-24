@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class DocumentScanner {
@@ -22,11 +22,15 @@ public class DocumentScanner {
     }
 
     private void scanAndIndex() throws IOException {
-        List<Path> documents = Files.walk(baseDirectory).filter(Files::isRegularFile).collect(Collectors.toList());
+        Set<Path> documents = Files.walk(baseDirectory).filter(Files::isRegularFile).collect(Collectors.toSet());
         for (Path document : documents) {
             String data = Files.readString(document);
-            String[] words = new DocumentProcessor(data).removeSigns().stem().toString().split("\\s+");
+            String[] words = new DocumentProcessor(data).toLowerCase().removeSigns().stem().toString().split("\\s+");
             Arrays.stream(words).forEach(e -> index.addWord(document, e));
         }
+    }
+
+    public InvertedIndex getIndex() {
+        return index;
     }
 }
