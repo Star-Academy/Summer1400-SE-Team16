@@ -1,10 +1,14 @@
 import exception.BaseDirectoryInvalidException;
+import utils.DocumentProcessor;
 import utils.DocumentScanner;
 import utils.SearchEngine;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Scanner;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -28,7 +32,7 @@ public class Main {
     }
 
     private static String getInput(Scanner scanner) {
-        return scanner.nextLine().trim().toLowerCase().replaceAll("\\s+", " ");
+        return scanner.nextLine();
     }
 
     private static LinkedHashSet<Path> getResults(SearchEngine engine, String input) {
@@ -36,8 +40,8 @@ public class Main {
         Set<String> mustHaveWords = new HashSet<>();
         Set<String> mustNotHaveWords = new HashSet<>();
         parseInput(input, couldHaveWords, mustHaveWords, mustNotHaveWords);
-        return engine.search(mustHaveWords.toArray(String[]::new), couldHaveWords.toArray(String[]::new),
-                mustNotHaveWords.toArray(String[]::new));
+        return engine.search(new DocumentProcessor(mustHaveWords).toStemmedSplit(), new DocumentProcessor(couldHaveWords).toStemmedSplit(),
+                new DocumentProcessor(mustNotHaveWords).toStemmedSplit());
     }
 
     private static void parseInput(String input, Set<String> couldHaveWords, Set<String> mustHaveWords, Set<String> mustNotHaveWords) {

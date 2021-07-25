@@ -3,7 +3,6 @@ package utils;
 import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
-import java.util.stream.Collectors;
 
 public class SearchEngine {
 
@@ -26,7 +25,11 @@ public class SearchEngine {
         } else if (mustHaveWords.length != 0) {
             removeMustNotHaves(mustNotHaveWords, mustHaveWordsSet);
         }
-        return mustHaveWordsSet.stream().map(index::getDocumentByIndex).collect(Collectors.toCollection(LinkedHashSet::new));
+        LinkedHashSet<Path> results = new LinkedHashSet<>();
+        for (int wordIndex : mustHaveWordsSet) {
+            results.add(index.getDocumentByIndex(wordIndex));
+        }
+        return results;
     }
 
     private void removeWordsWithoutOccurrences(String[] couldHaveWords, LinkedHashSet<Integer> mustHaveWordsSet) {
