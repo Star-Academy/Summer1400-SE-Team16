@@ -1,31 +1,25 @@
 package utils;
 
-import java.nio.file.Path;
+import model.Document;
+
 import java.util.HashMap;
 import java.util.Set;
 import java.util.TreeSet;
 
 public class InvertedIndex {
 
-    private final HashMap<String, Set<Integer>> wordIndexes;
-    private final HashMap<Integer, Path> documentIndexes;
+    private final HashMap<String, TreeSet<Document>> wordIndexes;
 
     public InvertedIndex() {
         wordIndexes = new HashMap<>();
-        documentIndexes = new HashMap<>();
     }
 
-    public void addWord(Path document, String word) {
-        documentIndexes.putIfAbsent(document.hashCode(), document);
+    public void addWord(Document document, String word) {
         wordIndexes.putIfAbsent(word, new TreeSet<>());
-        wordIndexes.get(word).add(document.hashCode());
+        wordIndexes.get(word).add(document);
     }
 
-    public Set<Integer> getWordIndexes(String word) {
+    public Set<Document> getWordIndexes(String word) {
         return wordIndexes.get(word);
-    }
-
-    public Path getDocumentByIndex(int index) {
-        return documentIndexes.get(index);
     }
 }

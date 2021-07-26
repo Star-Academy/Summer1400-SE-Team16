@@ -1,8 +1,11 @@
 package utils;
 
-import java.nio.file.Path;
+import model.Document;
+import model.SearchQuery;
+
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class SearchEngine {
 
@@ -12,32 +15,57 @@ public class SearchEngine {
         this.index = index;
     }
 
-    public LinkedHashSet<Path> search(String[] mustHaveWords, String[] couldHaveWords, String[] mustNotHaveWords) {
-        LinkedHashSet<Integer> mustHaveWordsSet = getCommonWordsIndexSet(mustHaveWords);
-        if (couldHaveWords.length != 0) {
-            if (mustHaveWords.length != 0) {
-                removeMustNotHaves(mustNotHaveWords, mustHaveWordsSet);
-                removeWordsWithoutOccurrences(couldHaveWords, mustHaveWordsSet);
-            } else {
-                mustHaveWordsSet = getJointWordsIndexSet(couldHaveWords);
-                removeMustNotHaves(mustNotHaveWords, mustHaveWordsSet);
-            }
-        } else if (mustHaveWords.length != 0) {
-            removeMustNotHaves(mustNotHaveWords, mustHaveWordsSet);
+    public LinkedHashSet<Document> search(SearchQuery query) {
+        LinkedHashSet<Document> resultsSet = getCommonWordsIndexSet(query.getMustHaveWords());
+        if (isArrayNotEmpty(query.getCouldHaveWords())) {
+            resultsSet = addCouldHaveWords(query, resultsSet);
+        } else if (isArrayNotEmpty(query.getMustHaveWords())) {
+            removeMustNotHaveWords(query.getMustNotHaveWords(), resultsSet);
         }
-        LinkedHashSet<Path> results = new LinkedHashSet<>();
-        for (int wordIndex : mustHaveWordsSet) {
-            results.add(index.getDocumentByIndex(wordIndex));
-        }
-        return results;
+        return resultsSet;
     }
 
-    private void removeWordsWithoutOccurrences(String[] couldHaveWords, LinkedHashSet<Integer> mustHaveWordsSet) {
-        for (Iterator<Integer> resultsIterator = mustHaveWordsSet.iterator(); resultsIterator.hasNext(); ) {
-            Integer wordIndex = resultsIterator.next();
+    private LinkedHashSet<Document> getCommonWordsIndexSet(String[] resultsWords) {
+        String minimumResultsWord = getMinimumResultsWord(resultsWords);
+        if (minimumResultsWord == null) return new LinkedHashSet<>();
+        LinkedHashSet<Document> resultsSet = new LinkedHashSet<>(getWordIndexes(minimumResultsWord));
+        for (String resultsWord : resultsWords) {
+            if (minimumResultsWord.equals(resultsWord)) continue;
+            resultsSet.retainAll(getWordIndexes(resultsWord));
+        }
+        return resultsSet;
+    }
+
+    private String getMinimumResultsWord(String[] resultsWords) {
+        String minWord = null;
+        int minLen = Integer.MAX_VALUE;
+        for (String word : resultsWords) {
+            if (getWordIndexes(word) == null) return null;
+            if (getWordIndexes(word).size() <= minLen) {
+                minLen = getWordIndexes(word).size();
+                minWord = word;
+            }
+        }
+        return minWord;
+    }
+
+    private LinkedHashSet<Document> addCouldHaveWords(SearchQuery query, LinkedHashSet<Document> resultsSet) {
+        if (isArrayNotEmpty(query.getMustHaveWords())) {
+            removeMustNotHaveWords(query.getMustNotHaveWords(), resultsSet);
+            removeIndexesWithoutWordsOccurrenceInCouldHaveWords(query.getCouldHaveWords(), resultsSet);
+        } else {
+            resultsSet = getJointWordsIndexSet(query.getCouldHaveWords());
+            removeMustNotHaveWords(query.getMustNotHaveWords(), resultsSet);
+        }
+        return resultsSet;
+    }
+
+    private void removeIndexesWithoutWordsOccurrenceInCouldHaveWords(String[] couldHaveWords, Set<Document> resultsSet) {
+        for (Iterator<Document> resultsIterator = resultsSet.iterator(); resultsIterator.hasNext(); ) {
+            Document wordIndex = resultsIterator.next();
             boolean isFound = false;
             for (String word : couldHaveWords) {
-                if (index.getWordIndexes(word).contains(wordIndex)) {
+                if (getWordIndexes(word).contains(wordIndex)) {
                     isFound = true;
                     break;
                 }
@@ -48,39 +76,28 @@ public class SearchEngine {
         }
     }
 
-    private void removeMustNotHaves(String[] mustNotHaveWords, LinkedHashSet<Integer> mustHaveWordsSet) {
-        if (mustNotHaveWords.length != 0) {
-            for (String word : mustNotHaveWords) {
-                mustHaveWordsSet.removeIf(wordIndex -> index.getWordIndexes(word).contains(wordIndex));
-            }
-        }
-    }
-
-    private LinkedHashSet<Integer> getJointWordsIndexSet(String[] resultsWords) {
-        LinkedHashSet<Integer> jointSet = new LinkedHashSet<>();
+    private LinkedHashSet<Document> getJointWordsIndexSet(String[] resultsWords) {
+        LinkedHashSet<Document> jointSet = new LinkedHashSet<>();
         for (String word : resultsWords) {
-            if (index.getWordIndexes(word) == null) continue;
-            jointSet.addAll(index.getWordIndexes(word));
+            if (getWordIndexes(word) == null) continue;
+            jointSet.addAll(getWordIndexes(word));
         }
         return jointSet;
     }
 
-    private LinkedHashSet<Integer> getCommonWordsIndexSet(String[] resultsWords) {
-        int minLen = Integer.MAX_VALUE;
-        String minWord = null;
-        for (String word : resultsWords) {
-            if (index.getWordIndexes(word) == null) return new LinkedHashSet<>();
-            if (index.getWordIndexes(word).size() < minLen) {
-                minLen = index.getWordIndexes(word).size();
-                minWord = word;
+    private void removeMustNotHaveWords(String[] mustNotHaveWords, Set<Document> resultsSet) {
+        if (isArrayNotEmpty(mustNotHaveWords)) {
+            for (String word : mustNotHaveWords) {
+                resultsSet.removeIf(wordIndex -> getWordIndexes(word).contains(wordIndex));
             }
         }
-        if (minWord == null) return new LinkedHashSet<>();
-        LinkedHashSet<Integer> resultsSet = new LinkedHashSet<>(index.getWordIndexes(minWord));
-        for (String resultsWord : resultsWords) {
-            if (minWord.equals(resultsWord)) continue;
-            resultsSet.retainAll(index.getWordIndexes(resultsWord));
-        }
-        return resultsSet;
+    }
+
+    private boolean isArrayNotEmpty(String[] wordsArray) {
+        return wordsArray.length != 0;
+    }
+
+    private Set<Document> getWordIndexes(String minimumResultsWord) {
+        return index.getWordIndexes(minimumResultsWord);
     }
 }

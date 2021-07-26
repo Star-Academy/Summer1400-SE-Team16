@@ -2,19 +2,21 @@ package utils;
 
 public class DocumentProcessor {
 
-    private final PorterStemmer stemmer;
+    private static final PorterStemmer stemmer;
+
+    static {
+        stemmer = new PorterStemmer();
+    }
+
     private String data;
 
     public DocumentProcessor(String data) {
-        stemmer = new PorterStemmer();
         this.data = data;
     }
 
     public DocumentProcessor(Iterable<? extends CharSequence> data) {
-        stemmer = new PorterStemmer();
-        this.data = String.join(" ", data);
-        if (this.data.equals("")) {
-            this.data = null;
+        if (data.iterator().hasNext()) {
+            this.data = String.join(" ", data);
         }
     }
 

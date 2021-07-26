@@ -1,6 +1,7 @@
 package utils;
 
 import exception.BaseDirectoryInvalidException;
+import model.Document;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -15,24 +16,45 @@ public class DocumentScanner {
 
     public DocumentScanner(Path baseDirectory) throws BaseDirectoryInvalidException, IOException {
         this.baseDirectory = baseDirectory;
-        if (!Files.isDirectory(baseDirectory)) throw new BaseDirectoryInvalidException();
+        if (!isPathDirectory(baseDirectory)) throw new BaseDirectoryInvalidException();
         index = new InvertedIndex();
         scanAndIndex();
     }
 
     private void scanAndIndex() throws IOException {
-        Set<Path> documents = Files.walk(baseDirectory).filter(Files::isRegularFile).collect(Collectors.toSet());
-        long totalTime = 0;
-        for (Path document : documents) {
-            String data = Files.readString(document);
-            long startTime = System.currentTimeMillis();
-            String[] words = new DocumentProcessor(data).toLowerCase().removeSigns().toStemmedSplit();
-            for (String word : words) {
-                index.addWord(document, word);
-            }
-            totalTime += System.currentTimeMillis() - startTime;
+        Set<Path> documentPaths = getAllFilesInPath();
+        for (Path documentPath : documentPaths) {
+            String[] words = getProcessedDocumentPathData(documentPath);
+            indexDocumentWords(documentPath, words);
         }
-        System.out.println(totalTime);
+    }
+
+    private Set<Path> getAllFilesInPath() throws IOException {
+        return Files.walk(baseDirectory).filter(Files::isRegularFile).collect(Collectors.toSet());
+    }
+
+    private String[] getProcessedDocumentPathData(Path documentPath) throws IOException {
+        String data = getPathData(documentPath);
+        return processDocumentData(data);
+    }
+
+    private String getPathData(Path documentPath) throws IOException {
+        return Files.readString(documentPath);
+    }
+
+    private String[] processDocumentData(String data) {
+        return new DocumentProcessor(data).toLowerCase().removeSigns().toStemmedSplit();
+    }
+
+    private void indexDocumentWords(Path documentPath, String[] words) {
+        Document document = new Document(documentPath);
+        for (String word : words) {
+            index.addWord(document, word);
+        }
+    }
+
+    private boolean isPathDirectory(Path baseDirectory) {
+        return Files.isDirectory(baseDirectory);
     }
 
     public InvertedIndex getIndex() {
