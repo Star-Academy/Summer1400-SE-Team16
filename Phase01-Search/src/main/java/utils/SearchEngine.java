@@ -1,5 +1,6 @@
 package utils;
 
+import exception.SearchException;
 import model.Document;
 import model.SearchQuery;
 
@@ -15,8 +16,14 @@ public class SearchEngine {
         this.index = index;
     }
 
-    public LinkedHashSet<Document> search(SearchQuery query) {
-        LinkedHashSet<Document> resultsSet = getCommonWordsIndexSet(query.getMustHaveWords());
+    public LinkedHashSet<Document> search(SearchQuery query) throws SearchException {
+        if (query == null) throw new SearchException("corrupted search query");
+        LinkedHashSet<Document> resultsSet;
+        try {
+            resultsSet = getCommonWordsIndexSet(query.getMustHaveWords());
+        } catch (SearchException e) {
+            resultsSet = new LinkedHashSet<>();
+        }
         if (isArrayNotEmpty(query.getCouldHaveWords())) {
             resultsSet = addCouldHaveWords(query, resultsSet);
         } else if (isArrayNotEmpty(query.getMustHaveWords())) {
@@ -25,9 +32,8 @@ public class SearchEngine {
         return resultsSet;
     }
 
-    private LinkedHashSet<Document> getCommonWordsIndexSet(String[] resultsWords) {
+    private LinkedHashSet<Document> getCommonWordsIndexSet(String[] resultsWords) throws SearchException {
         String minimumResultsWord = getMinimumResultsWord(resultsWords);
-        if (minimumResultsWord == null) return new LinkedHashSet<>();
         LinkedHashSet<Document> resultsSet = new LinkedHashSet<>(getWordIndexes(minimumResultsWord));
         for (String resultsWord : resultsWords) {
             if (minimumResultsWord.equals(resultsWord)) continue;
@@ -36,11 +42,12 @@ public class SearchEngine {
         return resultsSet;
     }
 
-    private String getMinimumResultsWord(String[] resultsWords) {
+    private String getMinimumResultsWord(String[] resultsWords) throws SearchException {
+        if (resultsWords == null || resultsWords.length == 0) throw new SearchException();
         String minWord = null;
         int minLen = Integer.MAX_VALUE;
         for (String word : resultsWords) {
-            if (getWordIndexes(word) == null) return null;
+            if (getWordIndexes(word) == null) throw new SearchException();
             if (getWordIndexes(word).size() <= minLen) {
                 minLen = getWordIndexes(word).size();
                 minWord = word;
@@ -94,7 +101,7 @@ public class SearchEngine {
     }
 
     private boolean isArrayNotEmpty(String[] wordsArray) {
-        return wordsArray.length != 0;
+        return wordsArray != null && wordsArray.length != 0;
     }
 
     private Set<Document> getWordIndexes(String minimumResultsWord) {
