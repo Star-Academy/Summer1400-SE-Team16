@@ -20,22 +20,28 @@ public class DocumentProcessor {
         }
     }
 
-    public DocumentProcessor toLowerCase() {
+    private void toLowerCase() {
+        if (data == null) return;
         data = data.toLowerCase();
-        return this;
     }
 
-    public DocumentProcessor removeSigns() {
+    private void removeSigns() {
+        if (data == null) return;
         data = data.replaceAll("[-?]+", " ").replaceAll("[^a-zA-Z0-9\\s]+", "");
-        return this;
     }
 
-    public String[] toStemmedSplit() {
+    private String[] toStemmedSplit() {
         if (data == null) return new String[0];
         String[] dataSplit = data.split("\\s+");
         for (int i = 0; i < dataSplit.length; i++) {
             dataSplit[i] = stemmer.stemWord(dataSplit[i]);
         }
         return dataSplit;
+    }
+
+    public String[] getNormalizedWords() {
+        toLowerCase();
+        removeSigns();
+        return toStemmedSplit();
     }
 }

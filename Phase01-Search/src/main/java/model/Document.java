@@ -3,6 +3,7 @@ package model;
 import lombok.Getter;
 
 import java.nio.file.Path;
+import java.util.Objects;
 
 @Getter
 public class Document implements Comparable<Document> {
@@ -26,5 +27,10 @@ public class Document implements Comparable<Document> {
             return ((Document) obj).id == id;
         }
         return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, documentPath);
     }
 }

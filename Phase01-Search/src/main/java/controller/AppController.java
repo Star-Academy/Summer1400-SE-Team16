@@ -9,7 +9,7 @@ import utils.SearchEngine;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class AppController {
 
@@ -23,20 +23,19 @@ public class AppController {
         engine = new SearchEngine(documentScanner.getIndex());
     }
 
-    public void search(String input) throws SearchException {
+    public Set<Document> search(String input) throws SearchException {
         if (engine == null) {
             throw new SearchException("indexes not initialized");
         }
-        LinkedHashSet<Document> results = getInputResults(input);
-        printResults(results);
+        return getInputResults(input);
     }
 
-    private LinkedHashSet<Document> getInputResults(String input) throws SearchException {
+    private Set<Document> getInputResults(String input) throws SearchException {
         SearchQuery query = new SearchQuery(input);
         return engine.search(query);
     }
 
-    private void printResults(LinkedHashSet<Document> results) {
+    public void printResults(Set<Document> results) {
         for (Document result : results) {
             System.out.println(result.getDocumentPath().getFileName());
         }

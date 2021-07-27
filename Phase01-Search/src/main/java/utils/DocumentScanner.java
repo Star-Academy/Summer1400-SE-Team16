@@ -43,7 +43,7 @@ public class DocumentScanner {
     }
 
     private String[] processDocumentData(String data) {
-        return new DocumentProcessor(data).toLowerCase().removeSigns().toStemmedSplit();
+        return new DocumentProcessor(data).getNormalizedWords();
     }
 
     private void indexDocumentWords(Path documentPath, String[] words) {

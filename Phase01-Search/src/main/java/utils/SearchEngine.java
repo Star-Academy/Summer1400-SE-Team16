@@ -4,8 +4,7 @@ import exception.SearchException;
 import model.Document;
 import model.SearchQuery;
 
-import java.util.Iterator;
-import java.util.LinkedHashSet;
+import java.util.HashSet;
 import java.util.Set;
 
 public class SearchEngine {
@@ -16,25 +15,25 @@ public class SearchEngine {
         this.index = index;
     }
 
-    public LinkedHashSet<Document> search(SearchQuery query) throws SearchException {
+    public Set<Document> search(SearchQuery query) throws SearchException {
         if (query == null) throw new SearchException("corrupted search query");
-        LinkedHashSet<Document> resultsSet;
+        HashSet<Document> resultsSet;
         try {
-            resultsSet = getCommonWordsIndexSet(query.getMustHaveWords());
+            resultsSet = getCommonWordsIndexSet(query.getRequiredWords());
         } catch (SearchException e) {
-            resultsSet = new LinkedHashSet<>();
+            resultsSet = new HashSet<>();
         }
-        if (isArrayNotEmpty(query.getCouldHaveWords())) {
-            resultsSet = addCouldHaveWords(query, resultsSet);
-        } else if (isArrayNotEmpty(query.getMustHaveWords())) {
-            removeMustNotHaveWords(query.getMustNotHaveWords(), resultsSet);
+        if (isArrayNotEmpty(query.getOptionalWords())) {
+            resultsSet = addOptionalWordsAndRemoveBannedWords(query, resultsSet);
+        } else if (isArrayNotEmpty(query.getRequiredWords())) {
+            removeBannedWords(query.getBannedWords(), resultsSet);
         }
         return resultsSet;
     }
 
-    private LinkedHashSet<Document> getCommonWordsIndexSet(String[] resultsWords) throws SearchException {
+    private HashSet<Document> getCommonWordsIndexSet(String[] resultsWords) throws SearchException {
         String minimumResultsWord = getMinimumResultsWord(resultsWords);
-        LinkedHashSet<Document> resultsSet = new LinkedHashSet<>(getWordIndexes(minimumResultsWord));
+        HashSet<Document> resultsSet = new HashSet<>(getWordIndexes(minimumResultsWord));
         for (String resultsWord : resultsWords) {
             if (minimumResultsWord.equals(resultsWord)) continue;
             resultsSet.retainAll(getWordIndexes(resultsWord));
@@ -56,35 +55,34 @@ public class SearchEngine {
         return minWord;
     }
 
-    private LinkedHashSet<Document> addCouldHaveWords(SearchQuery query, LinkedHashSet<Document> resultsSet) {
-        if (isArrayNotEmpty(query.getMustHaveWords())) {
-            removeMustNotHaveWords(query.getMustNotHaveWords(), resultsSet);
-            removeIndexesWithoutWordsOccurrenceInCouldHaveWords(query.getCouldHaveWords(), resultsSet);
+    private HashSet<Document> addOptionalWordsAndRemoveBannedWords(SearchQuery query, HashSet<Document> resultsSet) {
+        if (isArrayNotEmpty(query.getRequiredWords())) {
+            removeBannedWords(query.getBannedWords(), resultsSet);
+            removeIndexesWithoutOptionalWords(query, resultsSet);
         } else {
-            resultsSet = getJointWordsIndexSet(query.getCouldHaveWords());
-            removeMustNotHaveWords(query.getMustNotHaveWords(), resultsSet);
+            resultsSet = getJointWordsIndexSet(query.getOptionalWords());
+            removeBannedWords(query.getBannedWords(), resultsSet);
         }
         return resultsSet;
     }
 
-    private void removeIndexesWithoutWordsOccurrenceInCouldHaveWords(String[] couldHaveWords, Set<Document> resultsSet) {
-        for (Iterator<Document> resultsIterator = resultsSet.iterator(); resultsIterator.hasNext(); ) {
-            Document wordIndex = resultsIterator.next();
-            boolean isFound = false;
-            for (String word : couldHaveWords) {
-                if (getWordIndexes(word).contains(wordIndex)) {
-                    isFound = true;
-                    break;
-                }
-            }
-            if (!isFound) {
-                resultsIterator.remove();
-            }
-        }
+    private void removeIndexesWithoutOptionalWords(SearchQuery query, HashSet<Document> resultsSet) {
+        resultsSet.removeIf(wordIndex -> !isIndexFoundInOptionalWordsIndexes(query, wordIndex));
     }
 
-    private LinkedHashSet<Document> getJointWordsIndexSet(String[] resultsWords) {
-        LinkedHashSet<Document> jointSet = new LinkedHashSet<>();
+    private boolean isIndexFoundInOptionalWordsIndexes(SearchQuery query, Document wordIndex) {
+        boolean isFound = false;
+        for (String word : query.getOptionalWords()) {
+            if (getWordIndexes(word).contains(wordIndex)) {
+                isFound = true;
+                break;
+            }
+        }
+        return isFound;
+    }
+
+    private HashSet<Document> getJointWordsIndexSet(String[] resultsWords) {
+        HashSet<Document> jointSet = new HashSet<>();
         for (String word : resultsWords) {
             if (getWordIndexes(word) == null) continue;
             jointSet.addAll(getWordIndexes(word));
@@ -92,11 +90,10 @@ public class SearchEngine {
         return jointSet;
     }
 
-    private void removeMustNotHaveWords(String[] mustNotHaveWords, Set<Document> resultsSet) {
-        if (isArrayNotEmpty(mustNotHaveWords)) {
-            for (String word : mustNotHaveWords) {
-                resultsSet.removeIf(wordIndex -> getWordIndexes(word).contains(wordIndex));
-            }
+    private void removeBannedWords(String[] bannedWords, Set<Document> resultsSet) {
+        if (!isArrayNotEmpty(bannedWords)) return;
+        for (String word : bannedWords) {
+            resultsSet.removeIf(wordIndex -> getWordIndexes(word).contains(wordIndex));
         }
     }
 
