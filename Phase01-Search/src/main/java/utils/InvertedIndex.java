@@ -15,8 +15,7 @@ public class InvertedIndex {
     }
 
     public void addWord(Document document, String word) {
-        wordIndexes.putIfAbsent(word, new HashSet<>());
-        wordIndexes.get(word).add(document);
+        wordIndexes.computeIfAbsent(word, wordIndex -> new HashSet<>()).add(document);
     }
 
     public Set<Document> getWordIndexes(String word) {
