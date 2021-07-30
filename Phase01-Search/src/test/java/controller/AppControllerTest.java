@@ -32,10 +32,16 @@ public class AppControllerTest {
     @SneakyThrows
     @Test
     void searchTest() {
-        Set<Document> actualDocument = appController.search("+faster information -old -we");
+        Set<Document> firstActualDocument = appController.search("+faster information -old -we");
+        Set<Document> secondActualDocument = appController.search("+faster +information -old -we -have -is -I -how");
+        Set<Document> thirdActualDocument = appController.search("information -old -we -have -is -I -how");
         Set<Document> expectedDocument = new HashSet<>();
         expectedDocument.add(new Document(Path.of("SampleEnglishData/59522")));
-        Assertions.assertArrayEquals(expectedDocument.toArray(), actualDocument.toArray());
+        Assertions.assertArrayEquals(expectedDocument.toArray(), firstActualDocument.toArray());
+        expectedDocument.remove(new Document(Path.of("SampleEnglishData/59522")));
+        expectedDocument.add(new Document(Path.of("SampleEnglishData/59628")));
+        Assertions.assertArrayEquals(expectedDocument.toArray(), secondActualDocument.toArray());
+        Assertions.assertArrayEquals(expectedDocument.toArray(), thirdActualDocument.toArray());
     }
 
     @SneakyThrows
