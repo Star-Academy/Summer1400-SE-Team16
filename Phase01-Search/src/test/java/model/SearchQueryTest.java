@@ -3,7 +3,7 @@ package model;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class SearchQueryTest {
+class SearchQueryTest {
     @Test
     void SearchQueryConstructorTest() {
         String firstInput = "+fastest +holding -easily -stresses need information";
