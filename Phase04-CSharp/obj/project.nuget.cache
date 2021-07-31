@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "dgSpecHash": "ltF2oJdqBmDJ7avHy3NiYbjZ2bTaIq9bx1XJB31hcFR3VjGG5jNwDge6CBI8Q4uuwBqL7OZKE3yOzwtqFveZIA==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\ali_s\\Desktop\\CodeStar\\Summer1400-SE-Team16\\Phase04-CSharp\\First.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\ali_s\\.nuget\\packages\\system.runtime.compilerservices.unsafe\\5.0.0\\system.runtime.compilerservices.unsafe.5.0.0.nupkg.sha512",
+    "C:\\Users\\ali_s\\.nuget\\packages\\system.text.encodings.web\\5.0.1\\system.text.encodings.web.5.0.1.nupkg.sha512",
+    "C:\\Users\\ali_s\\.nuget\\packages\\system.text.json\\5.0.2\\system.text.json.5.0.2.nupkg.sha512"
+  ],
+  "logs": []
+}
