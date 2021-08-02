@@ -1,0 +1,12 @@
+C:\Users\ali_s\Desktop\CodeStar\Summer1400-SE-Team16\Phase05-TDD\SearchLib\SearchLib\bin\Debug\net5.0\SearchLib.deps.json
+C:\Users\ali_s\Desktop\CodeStar\Summer1400-SE-Team16\Phase05-TDD\SearchLib\SearchLib\bin\Debug\net5.0\SearchLib.dll
+C:\Users\ali_s\Desktop\CodeStar\Summer1400-SE-Team16\Phase05-TDD\SearchLib\SearchLib\bin\Debug\net5.0\ref\SearchLib.dll
+C:\Users\ali_s\Desktop\CodeStar\Summer1400-SE-Team16\Phase05-TDD\SearchLib\SearchLib\bin\Debug\net5.0\SearchLib.pdb
+C:\Users\ali_s\Desktop\CodeStar\Summer1400-SE-Team16\Phase05-TDD\SearchLib\SearchLib\obj\Debug\net5.0\SearchLib.csproj.AssemblyReference.cache
+C:\Users\ali_s\Desktop\CodeStar\Summer1400-SE-Team16\Phase05-TDD\SearchLib\SearchLib\obj\Debug\net5.0\SearchLib.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\ali_s\Desktop\CodeStar\Summer1400-SE-Team16\Phase05-TDD\SearchLib\SearchLib\obj\Debug\net5.0\SearchLib.AssemblyInfoInputs.cache
+C:\Users\ali_s\Desktop\CodeStar\Summer1400-SE-Team16\Phase05-TDD\SearchLib\SearchLib\obj\Debug\net5.0\SearchLib.AssemblyInfo.cs
+C:\Users\ali_s\Desktop\CodeStar\Summer1400-SE-Team16\Phase05-TDD\SearchLib\SearchLib\obj\Debug\net5.0\SearchLib.csproj.CoreCompileInputs.cache
+C:\Users\ali_s\Desktop\CodeStar\Summer1400-SE-Team16\Phase05-TDD\SearchLib\SearchLib\obj\Debug\net5.0\SearchLib.dll
+C:\Users\ali_s\Desktop\CodeStar\Summer1400-SE-Team16\Phase05-TDD\SearchLib\SearchLib\obj\Debug\net5.0\ref\SearchLib.dll
+C:\Users\ali_s\Desktop\CodeStar\Summer1400-SE-Team16\Phase05-TDD\SearchLib\SearchLib\obj\Debug\net5.0\SearchLib.pdb
