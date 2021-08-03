@@ -1,13 +1,19 @@
-﻿using System;
+﻿using SearchLib.Exceptions;
+using System;
+using System.IO;
 
 namespace SearchLib.Model
 {
     public class Document
     {
         private string DocumentPath;
-        public Document(string DocumentPath)
+        public Document(string documentPath)
         {
-            this.DocumentPath = DocumentPath;
+            if (!File.Exists(documentPath))
+            {
+                throw new SearchException("Invalid Path");
+            }
+            this.DocumentPath = Path.GetFullPath(documentPath);
         }
 
         public override bool Equals(object obj)
@@ -19,6 +25,11 @@ namespace SearchLib.Model
         public override int GetHashCode()
         {
             return HashCode.Combine(DocumentPath);
+        }
+
+        public override string ToString()
+        {
+            return DocumentPath;
         }
     }
 }

@@ -7,7 +7,7 @@ namespace SearchLib.Test.Model
     public class SearchQueryTest
     {
         [Fact]
-    void SearchQueryConstructorTest()
+        void SearchQueryConstructorTest()
         {
             string firstInput = "+fastest +holding -easily -stresses need information";
             string[] firstRequiredWordsExpected = { "need", "inform" };
