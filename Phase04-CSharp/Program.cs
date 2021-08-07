@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 
-namespace First // Phase 4
+namespace First
 {
     class Program
     {
@@ -16,12 +16,11 @@ namespace First // Phase 4
             }
         }
 
-        private static List<Student> GetTopThreeStudents()
+        private static List<T> DeserializeJsonFile<T>(string FileName) => JsonSerializer.Deserialize<List<T>>(File.ReadAllText(FileName)); 
+
+        private static void PrintStudentData(Student Student)
         {
-            List<Student> Students = DeserializeJsonFile<Student>("Students.json");
-            List<StudentScore> StudentScores = DeserializeJsonFile<StudentScore>("Scores.json");
-            AssignStudentAverages(Students, StudentScores);
-            return Students.OrderByDescending(o => o.Average).Take(3).ToList();
+            Console.WriteLine("{0,-20}{1,-20}{2,-5}", Student.FirstName, Student.LastName, Student.Average.ToString("0.00"));
         }
 
         private static void AssignStudentAverages(List<Student> Students, List<StudentScore> StudentScores)
@@ -32,11 +31,12 @@ namespace First // Phase 4
             }
         }
 
-        private static List<T> DeserializeJsonFile<T>(string FileName) => JsonSerializer.Deserialize<List<T>>(File.ReadAllText(FileName));
-
-        private static void PrintStudentData(Student Student)
+        private static List<Student> GetTopThreeStudents()
         {
-            Console.WriteLine("{0,-20}{1,-20}{2,-5}", Student.FirstName, Student.LastName, Student.Average.ToString("0.00"));
+            List<Student> Students = DeserializeJsonFile<Student>("Students.json");
+            List<StudentScore> StudentScores = DeserializeJsonFile<StudentScore>("Scores.json");
+            AssignStudentAverages(Students, StudentScores);
+            return Students.OrderByDescending(o => o.Average).Take(3).ToList();
         }
     }
 }
