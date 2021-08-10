@@ -3,7 +3,9 @@ Phase01-Search/SampleEnglishData/
 
 Phase01-Search/target/
 
-*/.vs/
-*/obj/
-*/bin/
-*/SampleEnglishData/
+Phase05-TDD/SearchLib/.vs/
+Phase05-TDD/SearchLib/SampleEnglishData/
+Phase05-TDD/SearchLib/SearchLib/bin/
+Phase05-TDD/SearchLib/SearchLib/obj/
+Phase05-TDD/SearchLib/SearchLib.Test/bin/
+Phase05-TDD/SearchLib/SearchLib.Test/obj/
