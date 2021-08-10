@@ -3,6 +3,7 @@ using SearchLib.Exceptions;
 using SearchLib.Model;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 
 namespace SearchLib.Test.Controller
@@ -16,51 +17,38 @@ namespace SearchLib.Test.Controller
             Library = new SearchLib();
         }
 
-        [Fact]
-        public void SearchTest()
+        [Theory]
+        [InlineData("+faster information -old -we", new string[] { "..\\..\\..\\..\\SampleEnglishData\\59522" })]
+        [InlineData("+faster +information -old -we -have -is -I -how", new string[] { "..\\..\\..\\..\\SampleEnglishData\\59628" })]
+        [InlineData("information -old -we -have -is -I -how", new string[] { "..\\..\\..\\..\\SampleEnglishData\\59628" })]
+        [InlineData("old male", new string[] { "..\\..\\..\\..\\SampleEnglishData\\57110", "..\\..\\..\\..\\SampleEnglishData\\58796",
+            "..\\..\\..\\..\\SampleEnglishData\\59122", "..\\..\\..\\..\\SampleEnglishData\\59207" })]
+        public void SearchTest(string query, string[] expected)
         {
-            ISet<Document> firstExpectedDocuments = new HashSet<Document>();
-            firstExpectedDocuments.Add(new Document("..\\..\\..\\..\\SampleEnglishData\\59522"));
-            ISet<Document> secondExpectedDocuments = new HashSet<Document>();
-            secondExpectedDocuments.Add(new Document("..\\..\\..\\..\\SampleEnglishData\\59628"));
-            ISet<Document> thirdExpectedDocuments = new HashSet<Document>();
-            thirdExpectedDocuments.Add(new Document("..\\..\\..\\..\\SampleEnglishData\\57110"));
-            thirdExpectedDocuments.Add(new Document("..\\..\\..\\..\\SampleEnglishData\\58796"));
-            thirdExpectedDocuments.Add(new Document("..\\..\\..\\..\\SampleEnglishData\\59122"));
-            thirdExpectedDocuments.Add(new Document("..\\..\\..\\..\\SampleEnglishData\\59207"));
             Library.CrawlPath("..\\..\\..\\..\\SampleEnglishData");
-            ISet<Document> firstActualDocument = Library.Search("+faster information -old -we");
-            ISet<Document> secondActualDocument = Library.Search("+faster +information -old -we -have -is -I -how");
-            ISet<Document> thirdActualDocument = Library.Search("information -old -we -have -is -I -how");
-            ISet<Document> fourthActualDocument = Library.Search("old male");
-            firstExpectedDocuments.Should().BeEquivalentTo(firstActualDocument);
-            secondExpectedDocuments.Should().BeEquivalentTo(secondActualDocument);
-            secondExpectedDocuments.Should().BeEquivalentTo(thirdActualDocument);
-            thirdExpectedDocuments.Should().BeEquivalentTo(fourthActualDocument);
+            ISet<Document> actualDocuments = Library.Search(query);
+            ISet<Document> expectedDocuments = expected.Select(e => new Document(e)).ToHashSet();
+            actualDocuments.Should().BeEquivalentTo(expectedDocuments);
         }
 
-        [Fact]
-        public void FileCrawlSearchTest()
+        [Theory]
+        [InlineData(new string[0], "test", new string[0])]
+        [InlineData(new string[] { "..\\..\\..\\..\\SampleEnglishData\\59522" }, "+faster information -old -we", new string[] { "..\\..\\..\\..\\SampleEnglishData\\59522" })]
+        [InlineData(new string[] { "..\\..\\..\\..\\SampleEnglishData\\59522" }, "+faster +information -old -we -have -is -I -how", new string[0])]
+        [InlineData(new string[] { "..\\..\\..\\..\\SampleEnglishData\\59522" }, "information -old -we -have -is -I -how", new string[0])]
+        [InlineData(new string[] { "..\\..\\..\\..\\SampleEnglishData\\59522", "..\\..\\..\\..\\SampleEnglishData\\59628" }, 
+            "+faster +information -old -we -have -is -I -how", new string[] { "..\\..\\..\\..\\SampleEnglishData\\59628" })]
+        [InlineData(new string[] { "..\\..\\..\\..\\SampleEnglishData\\59522", "..\\..\\..\\..\\SampleEnglishData\\59628" },
+            "information -old -we -have -is -I -how", new string[] { "..\\..\\..\\..\\SampleEnglishData\\59628" })]
+        public void FileCrawlSearchTest(string[] crawlPaths, string query, string[] expected)
         {
-            ISet<Document> emptySet = new HashSet<Document>();
-            ISet<Document> firstExpectedDocuments = new HashSet<Document>();
-            firstExpectedDocuments.Add(new Document("..\\..\\..\\..\\SampleEnglishData\\59522"));
-            ISet<Document> secondExpectedDocuments = new HashSet<Document>();
-            secondExpectedDocuments.Add(new Document("..\\..\\..\\..\\SampleEnglishData\\59628"));
-            ISet<Document> noCrawlDocuments = Library.Search("test");
-            emptySet.Should().BeEquivalentTo(noCrawlDocuments);
-            Library.CrawlPath("..\\..\\..\\..\\SampleEnglishData\\59522");
-            ISet<Document> firstActualDocuments = Library.Search("+faster information -old -we");
-            ISet<Document> secondActualDocuments = Library.Search("+faster +information -old -we -have -is -I -how");
-            ISet<Document> thirdActualDocuments = Library.Search("information -old -we -have -is -I -how");
-            firstExpectedDocuments.Should().BeEquivalentTo(firstActualDocuments);
-            emptySet.Should().BeEquivalentTo(secondActualDocuments);
-            emptySet.Should().BeEquivalentTo(thirdActualDocuments);
-            Library.CrawlPath("..\\..\\..\\..\\SampleEnglishData\\59628");
-            ISet<Document> fourthActualDocuments = Library.Search("+faster +information -old -we -have -is -I -how");
-            ISet<Document> fifthActualDocuments = Library.Search("information -old -we -have -is -I -how");
-            secondExpectedDocuments.Should().BeEquivalentTo(fourthActualDocuments);
-            secondExpectedDocuments.Should().BeEquivalentTo(fifthActualDocuments);
+            foreach (string crawlPath in crawlPaths)
+            {
+                Library.CrawlPath(crawlPath);
+            }
+            ISet<Document> actualDocuments = Library.Search(query);
+            ISet<Document> expectedDocuments = expected.Select(e => new Document(e)).ToHashSet();
+            actualDocuments.Should().BeEquivalentTo(expectedDocuments);
         }
 
         [Fact]

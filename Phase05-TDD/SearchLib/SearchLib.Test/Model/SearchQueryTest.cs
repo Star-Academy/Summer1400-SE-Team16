@@ -9,14 +9,14 @@ namespace SearchLib.Test.Model
         [Fact]
         void SearchQueryConstructorTest()
         {
-            string firstInput = "+fastest +holding -easily -stresses need information";
-            string[] firstRequiredWordsExpected = { "need", "inform" };
-            string[] firstOptionalWordsExpected = { "hold", "fastest" };
-            string[] firstBannedWordsExpected = { "stress", "easili" };
-            SearchQuery firstSearchQuery = new SearchQuery(firstInput);
-            firstRequiredWordsExpected.Should().BeEquivalentTo(firstSearchQuery.RequiredWords);
-            firstOptionalWordsExpected.Should().BeEquivalentTo(firstSearchQuery.OptionalWords);
-            firstBannedWordsExpected.Should().BeEquivalentTo(firstSearchQuery.BannedWords);
+            string[] expectedSearchQueryRequiredWords = { "need", "inform" };
+            string[] expectedSearchQueryOptionalWords = { "hold", "fastest" };
+            string[] expectedSearchQueryBannedWords = { "stress", "easili" };
+            string input = "+fastest +holding -easily -stresses need information";
+            SearchQuery actualSearchQuery = new SearchQuery(input);
+            actualSearchQuery.RequiredWords.Should().BeEquivalentTo(expectedSearchQueryRequiredWords);
+            actualSearchQuery.OptionalWords.Should().BeEquivalentTo(expectedSearchQueryOptionalWords);
+            actualSearchQuery.BannedWords.Should().BeEquivalentTo(expectedSearchQueryBannedWords);
         }
     }
 }

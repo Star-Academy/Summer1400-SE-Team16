@@ -3,16 +3,7 @@ Phase01-Search/SampleEnglishData/
 
 Phase01-Search/target/
 
-Phase05-TDD/SearchLib/.vs/
-Phase05-TDD/SearchLib/SampleEnglishData/
-Phase05-TDD/SearchLib/SearchLib/bin/
-Phase05-TDD/SearchLib/SearchLib/obj/
-Phase05-TDD/SearchLib/SearchLib.Test/bin/
-Phase05-TDD/SearchLib/SearchLib.Test/obj/
-
-Phase08-EFCore/SearchLib/.vs/
-Phase08-EFCore/SearchLib/SampleEnglishData/
-Phase08-EFCore/SearchLib/SearchLib/bin/
-Phase08-EFCore/SearchLib/SearchLib/obj/
-Phase08-EFCore/SearchLib/SearchLib.Test/bin/
-Phase08-EFCore/SearchLib/SearchLib.Test/obj/
+**/.vs/
+**/SampleEnglishData/
+**/bin/
+**/obj/
