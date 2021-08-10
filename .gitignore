@@ -4,4 +4,6 @@ Phase01-Search/SampleEnglishData/
 Phase01-Search/target/
 
 */.vs/
-Phase05-TDD/SearchLib/SampleEnglishData/
+*/obj/
+*/bin/
+*/SampleEnglishData/
