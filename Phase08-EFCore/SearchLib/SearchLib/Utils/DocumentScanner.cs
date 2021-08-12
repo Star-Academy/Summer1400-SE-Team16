@@ -1,9 +1,11 @@
-﻿using SearchLib.Exceptions;
+﻿using Microsoft.EntityFrameworkCore;
+using SearchLib.Exceptions;
 using SearchLib.Model;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace SearchLib.Utils
 {
@@ -12,40 +14,66 @@ namespace SearchLib.Utils
         private readonly string BasePath;
         private readonly InvertedIndex Index;
         private readonly SearchContext Context;
+        private HashSet<Document> PathDocuments;
+        private HashSet<Document> DocumentsToScan;
 
         public DocumentScanner(InvertedIndex index, string basePath)
         {
             BasePath = basePath;
             Index = index;
             Context = index.Context;
-            if (IsPathDirectory(basePath) && !IsPathFile(basePath))
+            PathDocuments = new HashSet<Document>();
+            DocumentsToScan = new HashSet<Document>();
+            PreparePathForIndexing();
+            foreach (Document document in DocumentsToScan)
             {
-                IndexAllFilesInDirectory();
+                IndexFile(document);
             }
-            else if (!IsPathDirectory(basePath) && IsPathFile(basePath))
+            Index.FlushAndClearCache();
+        }
+
+        private void PreparePathForIndexing()
+        {
+            if (IsPathDirectory(BasePath))
             {
-                IndexFile(basePath);
+                PrepareAllNewDocumentsInDirectoryForIndexing();
+            }
+            else if (IsPathFile(BasePath))
+            {
+                PrepareANewDocumentForIndexing();
             }
             else
             {
                 throw new SearchException("Invalid Path");
             }
-            Index.FlushAndClearCache();
         }
 
-        private void IndexAllFilesInDirectory()
+        private void PrepareAllNewDocumentsInDirectoryForIndexing()
         {
+            PathDocuments = GetBasePathDocumentsFromDB();
             IEnumerable<string> documentPaths = GetAllFilesInPath();
             foreach (string documentPath in documentPaths)
             {
-                IndexFile(documentPath);
+                PutDocumentInDB(documentPath);
+            }
+            Index.Flush();
+            PathDocuments = GetBasePathDocumentsFromDB();
+            foreach (Document document in PathDocuments)
+            {
+                if (!IsFileSameAfterLastCrawl(document))
+                {
+                    DocumentsToScan.Add(document);
+                }
             }
         }
 
-        private void IndexFile(string documentPath)
+        private HashSet<Document> GetBasePathDocumentsFromDB()
         {
-            string[] words = GetProcessedDocumentPathData(documentPath);
-            IndexDocumentWords(documentPath, words);
+            return Context.Document
+                            .FromSqlRaw(string.Format(
+                                "SELECT * FROM document WHERE Path LIKE '{0}\\\\\\\\%'",
+                                Regex.Replace(Path.GetFullPath(BasePath), "(?<!\\\\)\\\\(?!\\\\)", "\\\\\\\\")))
+                                .ToHashSet();
         }
 
         private IEnumerable<string> GetAllFilesInPath()
@@ -53,9 +81,30 @@ namespace SearchLib.Utils
             return Directory.EnumerateFiles(BasePath);
         }
 
-        private string[] GetProcessedDocumentPathData(string documentPath)
+        private void PrepareANewDocumentForIndexing()
         {
-            string data = GetPathData(documentPath);
+            Document DBDocument = GetDocumentFromDB(BasePath);
+            if (DBDocument == null)
+            {
+                PutDocumentInDB(BasePath);
+                Index.Flush();
+                DBDocument = GetDocumentFromDB(BasePath);
+            }
+            if (!IsFileSameAfterLastCrawl(DBDocument))
+            {
+                DocumentsToScan.Add(DBDocument);
+            }
+        }
+
+        private void IndexFile(Document document)
+        {
+            ISet<string> words = GetProcessedDocumentPathData(document);
+            IndexDocumentWords(document, words);
+        }
+
+        private ISet<string> GetProcessedDocumentPathData(Document document)
+        {
+            string data = GetPathData(document.Path);
             return ProcessDocumentData(data);
         }
 
@@ -64,50 +113,48 @@ namespace SearchLib.Utils
             return File.ReadAllText(documentPath);
         }
 
-        private string[] ProcessDocumentData(string data)
+        private ISet<string> ProcessDocumentData(string data)
         {
             return new DocumentProcessor(data).GetNormalizedWords();
         }
 
-        private void IndexDocumentWords(string documentPath, string[] words)
+        private void IndexDocumentWords(Document document, ISet<string> words)
         {
-            Document document = new Document(documentPath);
-            Document DBDocument = FindDocumentByPath(document.Path);
-            if (DBDocument == null)
-            {
-                Context.Document.Add(document);
-                Index.Flush();
-                DBDocument = FindDocumentByPath(document.Path);
-            }
-            else if (DateTime.Compare(DBDocument.LastCrawled, new FileInfo(DBDocument.Path).LastWriteTime) > 0)
-            {
-                return;
-            }
             foreach (string word in words)
             {
-                Index.AddWord(DBDocument, word);
+                Index.AddWord(document, word);
             }
-            DBDocument.LastCrawled = DateTime.Now;
+            document.LastCrawled = DateTime.Now;
         }
 
-        private Document FindDocumentByPath(string path)
+        private void PutDocumentInDB(string path)
         {
-            return Context.Document.FirstOrDefault(e => e.Path == path);
+            Document document = new Document(path);
+            Document DBDocument = PathDocuments.FirstOrDefault(e => e.Path == document.Path);
+            if (DBDocument == null)
+            {
+                document.LastCrawled = DateTime.MinValue;
+                Context.Document.Add(document);
+            }
+        }
+
+        private Document GetDocumentFromDB(string path)
+        {
+            return Context.Document.FirstOrDefault(e => e.Path == Path.GetFullPath(path));
         }
 
         private bool IsPathDirectory(string basePath)
         {
-            return Directory.Exists(basePath);
+            return !File.Exists(basePath) && Directory.Exists(basePath);
         }
 
         private bool IsPathFile(string basePath)
         {
-            return File.Exists(basePath);
+            return File.Exists(basePath) && !Directory.Exists(basePath);
         }
-
-        public InvertedIndex GetIndex()
+        private bool IsFileSameAfterLastCrawl(Document document)
         {
-            return Index;
+            return DateTime.Compare(document.LastCrawled, new FileInfo(document.Path).LastWriteTime) > 0;
         }
     }
 }

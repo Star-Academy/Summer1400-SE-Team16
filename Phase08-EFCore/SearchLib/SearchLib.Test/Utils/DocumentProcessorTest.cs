@@ -13,7 +13,7 @@ namespace SearchLib.Test.Utils
         [InlineData("the ExPe-cted tesTiNg is , the, expect, test, is", new string[] { "the", "exp", "cted", "test", "is", "expect" })]
         void GetNormalizedWordsTest(string text, string[] expected)
         {
-            string[] actual = new DocumentProcessor(text).GetNormalizedWords();
+            ISet<string> actual = new DocumentProcessor(text).GetNormalizedWords();
             actual.Should().BeEquivalentTo(expected);
         }
 
@@ -30,7 +30,7 @@ namespace SearchLib.Test.Utils
             data.Add("jo&b");
             data.Add("foR#");
             data.Add("creators");
-            string[] actual = new DocumentProcessor(data).GetNormalizedWords();
+            ISet<string> actual = new DocumentProcessor(data).GetNormalizedWords();
             actual.Should().BeEquivalentTo(expected);
         }
     }

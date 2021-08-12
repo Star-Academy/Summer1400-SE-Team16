@@ -10,9 +10,9 @@ namespace SearchLib.Model
         private static readonly string OPTIONAL_WORDS_REGEX = "(?<=\\s|^)\\+(\\S+)(?=\\s|$)";
         private static readonly string BANNED_WORDS_REGEX = "(?<=\\s|^)-(\\S+)(?=\\s|$)";
 
-        public string[] RequiredWords { get; }
-        public string[] OptionalWords { get; }
-        public string[] BannedWords { get; }
+        public ISet<string> RequiredWords { get; }
+        public ISet<string> OptionalWords { get; }
+        public ISet<string> BannedWords { get; }
         public SearchQuery(string input)
         {
             OptionalWords = GetStemmedWordsFromInputByRegex(input, OPTIONAL_WORDS_REGEX);
@@ -20,7 +20,7 @@ namespace SearchLib.Model
             RequiredWords = GetStemmedWordsFromInputByRegex(input, REQUIRED_WORDS_REGEX);
         }
 
-        private string[] GetStemmedWordsFromInputByRegex(string input, string pattern)
+        private ISet<string> GetStemmedWordsFromInputByRegex(string input, string pattern)
         {
             ISet<string> wordsSet = new HashSet<string>();
             MatchCollection matches = Regex.Matches(input, pattern);

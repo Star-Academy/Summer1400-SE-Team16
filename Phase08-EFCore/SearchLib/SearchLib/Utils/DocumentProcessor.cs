@@ -40,18 +40,18 @@ namespace SearchLib.Utils
             Data = Regex.Replace(Data, "[^a-zA-Z0-9\\s]+", "");
         }
 
-        private string[] ToStemmedSplit()
+        private ISet<string> ToStemmedSplit()
         {
-            if (Data == null) return new string[0];
+            if (Data == null) return new HashSet<string>();
             string[] dataSplit = Regex.Split(Data, "\\s+").ToHashSet().ToArray();
             for (int i = 0; i < dataSplit.Length; i++)
             {
                 dataSplit[i] = Stemmer.StemWord(dataSplit[i]);
             }
-            return dataSplit.ToHashSet().ToArray();
+            return dataSplit.ToHashSet();
         }
 
-        public string[] GetNormalizedWords()
+        public ISet<string> GetNormalizedWords()
         {
             ToLowerCase();
             RemoveSigns();

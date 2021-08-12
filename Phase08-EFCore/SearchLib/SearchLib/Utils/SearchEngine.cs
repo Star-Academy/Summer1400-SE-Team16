@@ -29,18 +29,18 @@ namespace SearchLib.Utils
             {
                 resultsSet = new HashSet<Document>();
             }
-            if (IsArrayNotEmpty(query.OptionalWords))
+            if (IsSetNotEmpty(query.OptionalWords))
             {
                 resultsSet = AddOptionalWordsAndRemoveBannedWords(query, resultsSet);
             }
-            else if (IsArrayNotEmpty(query.RequiredWords))
+            else if (IsSetNotEmpty(query.RequiredWords))
             {
                 RemoveBannedWords(query.BannedWords, resultsSet);
             }
             return resultsSet;
         }
 
-        private HashSet<Document> GetCommonWordsIndexSet(string[] resultsWords)
+        private HashSet<Document> GetCommonWordsIndexSet(ISet<string> resultsWords)
         {
             string minimumResultsWord = GetMinimumResultsWord(resultsWords);
             HashSet<Document> resultsSet = new HashSet<Document>(GetWordIndexes(minimumResultsWord));
@@ -55,9 +55,9 @@ namespace SearchLib.Utils
             return resultsSet;
         }
 
-        private string GetMinimumResultsWord(string[] resultsWords)
+        private string GetMinimumResultsWord(ISet<string> resultsWords)
         {
-            if (resultsWords == null || resultsWords.Length == 0) throw new SearchException();
+            if (resultsWords == null || resultsWords.Count == 0) throw new SearchException();
             string minWord = null;
             int minLen = int.MaxValue;
             foreach (string word in resultsWords)
@@ -77,7 +77,7 @@ namespace SearchLib.Utils
 
         private HashSet<Document> AddOptionalWordsAndRemoveBannedWords(SearchQuery query, HashSet<Document> resultsSet)
         {
-            if (IsArrayNotEmpty(query.RequiredWords))
+            if (IsSetNotEmpty(query.RequiredWords))
             {
                 RemoveBannedWords(query.BannedWords, resultsSet);
                 RemoveIndexesWithoutOptionalWords(query, resultsSet);
@@ -100,7 +100,7 @@ namespace SearchLib.Utils
             return query.OptionalWords.Any(word => IsIndexInWordIndexes(wordIndex, word));
         }
 
-        private HashSet<Document> GetJointWordsIndexSet(string[] resultsWords)
+        private HashSet<Document> GetJointWordsIndexSet(ISet<string> resultsWords)
         {
             HashSet<Document> jointSet = new HashSet<Document>();
             foreach (string word in resultsWords)
@@ -114,9 +114,9 @@ namespace SearchLib.Utils
             return jointSet;
         }
 
-        private void RemoveBannedWords(string[] bannedWords, HashSet<Document> resultsSet)
+        private void RemoveBannedWords(ISet<string> bannedWords, HashSet<Document> resultsSet)
         {
-            if (!IsArrayNotEmpty(bannedWords))
+            if (!IsSetNotEmpty(bannedWords))
             {
                 return;
             }
@@ -136,9 +136,9 @@ namespace SearchLib.Utils
             return false;
         }
 
-        private bool IsArrayNotEmpty(string[] wordsArray)
+        private bool IsSetNotEmpty(ISet<string> wordsArray)
         {
-            return wordsArray != null && wordsArray.Length != 0;
+            return wordsArray != null && wordsArray.Count != 0;
         }
 
         private ISet<Document> GetWordIndexes(string minimumResultsWord)
