@@ -2,38 +2,46 @@ package utils;
 
 public class DocumentProcessor {
 
-    private final PorterStemmer stemmer;
+    private static final PorterStemmer stemmer;
+
+    static {
+        stemmer = new PorterStemmer();
+    }
+
     private String data;
 
     public DocumentProcessor(String data) {
-        stemmer = new PorterStemmer();
         this.data = data;
     }
 
     public DocumentProcessor(Iterable<? extends CharSequence> data) {
-        stemmer = new PorterStemmer();
-        this.data = String.join(" ", data);
-        if (this.data.equals("")) {
-            this.data = null;
+        if (data.iterator().hasNext()) {
+            this.data = String.join(" ", data);
         }
     }
 
-    public DocumentProcessor toLowerCase() {
+    private void toLowerCase() {
+        if (data == null) return;
         data = data.toLowerCase();
-        return this;
     }
 
-    public DocumentProcessor removeSigns() {
+    private void removeSigns() {
+        if (data == null) return;
         data = data.replaceAll("[-?]+", " ").replaceAll("[^a-zA-Z0-9\\s]+", "");
-        return this;
     }
 
-    public String[] toStemmedSplit() {
+    private String[] toStemmedSplit() {
         if (data == null) return new String[0];
         String[] dataSplit = data.split("\\s+");
         for (int i = 0; i < dataSplit.length; i++) {
             dataSplit[i] = stemmer.stemWord(dataSplit[i]);
         }
         return dataSplit;
+    }
+
+    public String[] getNormalizedWords() {
+        toLowerCase();
+        removeSigns();
+        return toStemmedSplit();
     }
 }
